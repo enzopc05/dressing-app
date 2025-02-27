@@ -6,7 +6,9 @@ import ClothingForm from "./ClothingForm";
 import OutfitCreator from "./OutfitCreator";
 import ColorAssistant from "./ColorAssistant";
 import UserSelection from "./UserSelection";
+import UserAdmin from "./UserAdmin"; // Importer le nouveau composant
 import Footer from "./Footer";
+import PendingOrders from "./PendingOrders";
 import {
   getClothes,
   saveClothes,
@@ -14,17 +16,24 @@ import {
   updateClothing,
   deleteClothing,
 } from "../utils/dataService";
-import { isLoggedIn, getCurrentUserId } from "../utils/simpleAuthService";
+import {
+  isLoggedIn,
+  getCurrentUserId,
+  isCurrentUserAdmin, // Nouvelle fonction
+} from "../utils/simpleAuthService";
 
 function App() {
   const [clothes, setClothes] = useState([]);
-  const [view, setView] = useState("list"); // 'list', 'add', 'outfit', 'color'
+  const [view, setView] = useState("list"); // 'list', 'add', 'outfit', 'color', 'admin', 'orders'
   const [selectedClothes, setSelectedClothes] = useState(null);
   const [loggedIn, setLoggedIn] = useState(false);
+  const [isAdmin, setIsAdmin] = useState(false); // Nouvel état pour vérifier si l'utilisateur est admin
 
   // Vérifier si un utilisateur est connecté
   useEffect(() => {
-    setLoggedIn(isLoggedIn());
+    const loggedInStatus = isLoggedIn();
+    setLoggedIn(loggedInStatus);
+    setIsAdmin(loggedInStatus ? isCurrentUserAdmin() : false);
   }, []);
 
   // Charger les vêtements depuis le service de données au démarrage
@@ -85,8 +94,8 @@ function App() {
 
   return (
     <div className="App">
-      <Header setView={setView} />
-
+      <Header setView={setView} isAdmin={isAdmin} />{" "}
+      {/* Passer isAdmin au Header */}
       <main className="app-content">
         <UserSelection />
 
@@ -107,7 +116,6 @@ function App() {
                 onEdit={handleEditClothing}
               />
             )}
-
             {view === "add" && (
               <ClothingForm
                 onSubmit={
@@ -120,14 +128,14 @@ function App() {
                 }}
               />
             )}
-
             {view === "outfit" && <OutfitCreator clothes={clothes} />}
-
             {view === "color" && <ColorAssistant />}
+            {view === "admin" && <UserAdmin />}{" "}
+            {view === "orders" && <PendingOrders />}
+            {/* Nouveau rendu conditionnel pour l'admin */}
           </>
         )}
       </main>
-
       <Footer />
     </div>
   );

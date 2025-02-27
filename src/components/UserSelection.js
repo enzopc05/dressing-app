@@ -1,36 +1,57 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
   getAuthorizedUsers,
   loginUser,
   logoutUser,
   getCurrentUser,
 } from "../utils/simpleAuthService";
-import UserProfile from "./UserProfile";
 import "../styles/UserSelection.css";
 
 function UserSelection() {
-  const users = getAuthorizedUsers();
-  const currentUser = getCurrentUser();
-  const [showProfileModal, setShowProfileModal] = useState(false);
+  const [users, setUsers] = useState([]);
+  const [currentUser, setCurrentUser] = useState(null);
+
+  // Charger les utilisateurs et l'utilisateur actuel
+  useEffect(() => {
+    loadUsers();
+    setCurrentUser(getCurrentUser());
+
+    // Ajouter un écouteur d'événement pour le stockage local
+    window.addEventListener("storage", handleStorageChange);
+
+    return () => {
+      window.removeEventListener("storage", handleStorageChange);
+    };
+  }, []);
+
+  // Gérer les changements de stockage local
+  const handleStorageChange = (e) => {
+    if (e.key === "usersList") {
+      loadUsers();
+    } else if (e.key === "currentUser") {
+      setCurrentUser(getCurrentUser());
+    }
+  };
+
+  // Charger la liste des utilisateurs
+  const loadUsers = () => {
+    const authorizedUsers = getAuthorizedUsers();
+    setUsers(authorizedUsers);
+  };
 
   const handleUserSelection = (userId) => {
     loginUser(userId);
-    // Forcer le rechargement de la page pour mettre à jour les données
+    // Mettre à jour l'utilisateur courant
+    setCurrentUser(getCurrentUser());
+    // Recharger la page pour mettre à jour les données
     window.location.reload();
   };
 
   const handleLogout = () => {
     logoutUser();
-    // Forcer le rechargement de la page pour mettre à jour les données
+    setCurrentUser(null);
+    // Recharger la page pour mettre à jour les données
     window.location.reload();
-  };
-
-  const openProfileModal = () => {
-    setShowProfileModal(true);
-  };
-
-  const closeProfileModal = () => {
-    setShowProfileModal(false);
   };
 
   return (
@@ -39,26 +60,15 @@ function UserSelection() {
         <div className="current-user">
           <div
             className="user-avatar"
-            style={{
-              backgroundColor: currentUser.color,
-              backgroundImage: currentUser.avatar
-                ? `url(${currentUser.avatar})`
-                : "none",
-            }}
+            style={{ backgroundColor: currentUser.color }}
           >
-            {!currentUser.avatar && currentUser.name.charAt(0)}
+            {currentUser.name.charAt(0)}
           </div>
-          <span className="user-name">{currentUser.name}</span>
-          <div className="user-actions">
-            <button onClick={openProfileModal} className="edit-profile-button">
-              Modifier
-            </button>
-            <button onClick={handleLogout} className="logout-button">
-              Déconnexion
-            </button>
-          </div>
-
-          {showProfileModal && <UserProfile onClose={closeProfileModal} />}
+          <span>{currentUser.name}</span>
+          {currentUser.isAdmin && <span className="admin-badge">Admin</span>}
+          <button onClick={handleLogout} className="logout-button">
+            Déconnexion
+          </button>
         </div>
       ) : (
         <div className="user-list">
@@ -72,16 +82,14 @@ function UserSelection() {
               >
                 <div
                   className="user-avatar"
-                  style={{
-                    backgroundColor: user.color,
-                    backgroundImage: user.avatar
-                      ? `url(${user.avatar})`
-                      : "none",
-                  }}
+                  style={{ backgroundColor: user.color }}
                 >
-                  {!user.avatar && user.name.charAt(0)}
+                  {user.name.charAt(0)}
                 </div>
-                <span className="user-name">{user.name}</span>
+                <span>{user.name}</span>
+                {user.isAdmin && (
+                  <span className="user-admin-indicator">Admin</span>
+                )}
               </div>
             ))}
           </div>

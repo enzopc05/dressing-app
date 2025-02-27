@@ -11,6 +11,7 @@ const STORAGE_KEYS = {
   CLOTHES: "wardrobeClothes",
   OUTFITS: "savedOutfits",
   USER_PREFS: "userPreferences",
+  PENDING_ORDERS: "pendingOrders", // Nouvelle clé pour les commandes en attente
 };
 
 /**
@@ -114,6 +115,41 @@ export const saveUserPreferences = (preferences, userId = TEMP_USER_ID) => {
     return true;
   } catch (error) {
     console.error("Erreur lors de la sauvegarde des préférences:", error);
+    return false;
+  }
+};
+
+/**
+ * Récupère les commandes en attente de l'utilisateur
+ * @param {string} userId - Identifiant de l'utilisateur (facultatif)
+ * @returns {Array} - Tableau des commandes
+ */
+export const getPendingOrders = (userId = TEMP_USER_ID) => {
+  try {
+    const storedData = localStorage.getItem(
+      `${STORAGE_KEYS.PENDING_ORDERS}_${userId}`
+    );
+    return storedData ? JSON.parse(storedData) : [];
+  } catch (error) {
+    console.error("Erreur lors de la récupération des commandes:", error);
+    return [];
+  }
+};
+
+/**
+ * Sauvegarde les commandes en attente de l'utilisateur
+ * @param {Array} orders - Tableau des commandes
+ * @param {string} userId - Identifiant de l'utilisateur (facultatif)
+ */
+export const savePendingOrders = (orders, userId = TEMP_USER_ID) => {
+  try {
+    localStorage.setItem(
+      `${STORAGE_KEYS.PENDING_ORDERS}_${userId}`,
+      JSON.stringify(orders)
+    );
+    return true;
+  } catch (error) {
+    console.error("Erreur lors de la sauvegarde des commandes:", error);
     return false;
   }
 };
@@ -240,6 +276,120 @@ export const deleteOutfit = (outfitId, userId = TEMP_USER_ID) => {
 };
 
 /**
+ * Ajoute une nouvelle commande en attente
+ * @param {Object} order - Objet commande à ajouter
+ * @param {string} userId - Identifiant de l'utilisateur (facultatif)
+ * @returns {string} - Identifiant de la commande ajoutée
+ */
+export const addPendingOrder = (order, userId = TEMP_USER_ID) => {
+  const orders = getPendingOrders(userId);
+  const newId = Date.now().toString();
+
+  const newOrder = {
+    ...order,
+    id: newId,
+    createdAt: new Date().toISOString(),
+    updatedAt: new Date().toISOString(),
+    status: "pending", // pending, received, canceled
+  };
+
+  orders.push(newOrder);
+  savePendingOrders(orders, userId);
+
+  return newId;
+};
+
+/**
+ * Met à jour une commande existante
+ * @param {Object} order - Objet commande à mettre à jour
+ * @param {string} userId - Identifiant de l'utilisateur (facultatif)
+ * @returns {boolean} - Succès de la mise à jour
+ */
+export const updatePendingOrder = (order, userId = TEMP_USER_ID) => {
+  const orders = getPendingOrders(userId);
+  const index = orders.findIndex((item) => item.id === order.id);
+
+  if (index === -1) return false;
+
+  const updatedOrder = {
+    ...order,
+    updatedAt: new Date().toISOString(),
+  };
+
+  orders[index] = updatedOrder;
+  savePendingOrders(orders, userId);
+
+  return true;
+};
+
+/**
+ * Supprime une commande
+ * @param {string} orderId - Identifiant de la commande à supprimer
+ * @param {string} userId - Identifiant de l'utilisateur (facultatif)
+ * @returns {boolean} - Succès de la suppression
+ */
+export const deletePendingOrder = (orderId, userId = TEMP_USER_ID) => {
+  const orders = getPendingOrders(userId);
+  const filteredOrders = orders.filter((item) => item.id !== orderId);
+
+  if (filteredOrders.length === orders.length) return false;
+
+  savePendingOrders(filteredOrders, userId);
+  return true;
+};
+
+/**
+ * Marque une commande comme reçue et ajoute les vêtements au dressing
+ * @param {string} orderId - Identifiant de la commande
+ * @param {string} userId - Identifiant de l'utilisateur (facultatif)
+ * @returns {Object} - Résultat de l'opération
+ */
+export const receiveOrder = (orderId, userId = TEMP_USER_ID) => {
+  const orders = getPendingOrders(userId);
+  const orderIndex = orders.findIndex((item) => item.id === orderId);
+
+  if (orderIndex === -1) {
+    return { success: false, message: "Commande non trouvée" };
+  }
+
+  const order = orders[orderIndex];
+  const clothes = getClothes(userId);
+  const newClothes = [];
+
+  // Ajouter les vêtements de la commande au dressing
+  for (const item of order.items) {
+    const newId = Date.now().toString() + Math.floor(Math.random() * 1000);
+    const newClothing = {
+      ...item,
+      id: newId,
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString(),
+    };
+
+    clothes.push(newClothing);
+    newClothes.push(newClothing);
+  }
+
+  // Mettre à jour le statut de la commande
+  orders[orderIndex] = {
+    ...order,
+    status: "received",
+    receivedAt: new Date().toISOString(),
+    updatedAt: new Date().toISOString(),
+  };
+
+  // Sauvegarder les modifications
+  saveClothes(clothes, userId);
+  savePendingOrders(orders, userId);
+
+  return {
+    success: true,
+    message: `${order.items.length} vêtements ajoutés à votre dressing`,
+    addedClothes: newClothes,
+  };
+};
+
+/**
  * Exporte toutes les données de l'utilisateur (pour la sauvegarde)
  * @param {string} userId - Identifiant de l'utilisateur (facultatif)
  * @returns {Object} - Données complètes de l'utilisateur
@@ -248,6 +398,7 @@ export const exportUserData = (userId = TEMP_USER_ID) => {
   return {
     clothes: getClothes(userId),
     outfits: getOutfits(userId),
+    pendingOrders: getPendingOrders(userId),
     preferences: getUserPreferences(userId),
     exportDate: new Date().toISOString(),
     userId: userId,
@@ -264,6 +415,8 @@ export const importUserData = (userData, userId = TEMP_USER_ID) => {
   try {
     if (userData.clothes) saveClothes(userData.clothes, userId);
     if (userData.outfits) saveOutfits(userData.outfits, userId);
+    if (userData.pendingOrders)
+      savePendingOrders(userData.pendingOrders, userId);
     if (userData.preferences) saveUserPreferences(userData.preferences, userId);
     return true;
   } catch (error) {

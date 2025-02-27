@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 import ClothingItem from "./ClothingItem";
+import WardrobeSummary from "./WardrobeSummary";
 import "../styles/ClothingList.css";
 import {
   getMainCategories,
@@ -13,6 +14,8 @@ function ClothingList({ clothes, onDelete, onEdit }) {
     color: "",
     season: "",
   });
+
+  const [showSummary, setShowSummary] = useState(true); // État pour afficher/masquer le résumé
 
   // Ajouter un state pour les sous-catégories disponibles dans le filtre
   const [filterSubCategories, setFilterSubCategories] = useState({});
@@ -57,6 +60,19 @@ function ClothingList({ clothes, onDelete, onEdit }) {
 
   return (
     <div className="clothing-list-container">
+      {/* Ajouter le résumé de la garde-robe */}
+      {showSummary && <WardrobeSummary clothes={clothes} />}
+
+      <div className="list-header">
+        <h2>Liste de mes vêtements ({clothes.length})</h2>
+        <button
+          className="toggle-summary-btn"
+          onClick={() => setShowSummary(!showSummary)}
+        >
+          {showSummary ? "Masquer le résumé" : "Afficher le résumé"}
+        </button>
+      </div>
+
       <div className="filters">
         <h3>Filtres</h3>
 

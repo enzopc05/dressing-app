@@ -2,29 +2,22 @@
  * Service d'authentification simplifié pour une utilisation entre amis
  */
 
-// Liste prédéfinie des utilisateurs autorisés (par défaut)
-const DEFAULT_USERS = [
-  { id: "user1", name: "Moi", color: "#3498db", avatar: null },
-  { id: "user2", name: "Ami 1", color: "#e74c3c", avatar: null },
-  { id: "user3", name: "Ami 2", color: "#2ecc71", avatar: null },
-  { id: "user4", name: "Ami 3", color: "#f39c12", avatar: null },
+// Liste prédéfinie des utilisateurs autorisés
+let AUTHORIZED_USERS = [
+  { id: "user1", name: "Moi", color: "#3498db", isAdmin: false },
+  { id: "user2", name: "Ami 1", color: "#e74c3c", isAdmin: false },
+  { id: "user3", name: "Ami 2", color: "#2ecc71", isAdmin: false },
+  { id: "user4", name: "Ami 3", color: "#f39c12", isAdmin: false },
+  { id: "enzo", name: "Enzo", color: "#8e44ad", isAdmin: true }, // Compte admin
 ];
 
-// Récupérer les utilisateurs du stockage local ou utiliser les valeurs par défaut
-const loadUsers = () => {
-  const storedUsers = localStorage.getItem("appUsers");
-  if (storedUsers) {
-    return JSON.parse(storedUsers);
-  }
-  // Si aucun utilisateur n'est stocké, initialiser avec les valeurs par défaut
-  localStorage.setItem("appUsers", JSON.stringify(DEFAULT_USERS));
-  return DEFAULT_USERS;
-};
-
-// Sauvegarder les utilisateurs dans le stockage local
-const saveUsers = (users) => {
-  localStorage.setItem("appUsers", JSON.stringify(users));
-};
+// Initialiser le stockage local s'il n'existe pas encore
+if (!localStorage.getItem("usersList")) {
+  localStorage.setItem("usersList", JSON.stringify(AUTHORIZED_USERS));
+} else {
+  // Charger la liste depuis le stockage local
+  AUTHORIZED_USERS = JSON.parse(localStorage.getItem("usersList"));
+}
 
 // Récupérer l'utilisateur actuel du stockage local
 let currentUser = JSON.parse(localStorage.getItem("currentUser")) || null;
@@ -34,7 +27,7 @@ let currentUser = JSON.parse(localStorage.getItem("currentUser")) || null;
  * @returns {Array} - Liste des utilisateurs
  */
 export const getAuthorizedUsers = () => {
-  return loadUsers();
+  return JSON.parse(localStorage.getItem("usersList")) || AUTHORIZED_USERS;
 };
 
 /**
@@ -43,7 +36,7 @@ export const getAuthorizedUsers = () => {
  * @returns {Object} - Informations de l'utilisateur
  */
 export const loginUser = (userId) => {
-  const users = loadUsers();
+  const users = getAuthorizedUsers();
   const user = users.find((u) => u.id === userId);
 
   if (!user) {
@@ -89,35 +82,102 @@ export const getCurrentUserId = () => {
 };
 
 /**
- * Met à jour le profil d'un utilisateur
- * @param {object} updates - Mises à jour du profil (name, color, avatar)
- * @returns {object} - Utilisateur mis à jour
+ * Vérifie si l'utilisateur actuel est administrateur
+ * @returns {boolean} - True si l'utilisateur est administrateur
  */
-export const updateUserProfile = (updates) => {
-  if (!currentUser) {
-    throw new Error("Aucun utilisateur connecté");
+export const isCurrentUserAdmin = () => {
+  return currentUser ? currentUser.isAdmin : false;
+};
+
+/**
+ * Ajoute un nouvel utilisateur
+ * @param {Object} userData - Données de l'utilisateur à ajouter
+ * @returns {Object} - L'utilisateur ajouté
+ */
+export const addUser = (userData) => {
+  // Vérifier si l'utilisateur actuel est administrateur
+  if (!isCurrentUserAdmin()) {
+    throw new Error("Opération non autorisée: droits d'administrateur requis");
   }
 
-  const users = loadUsers();
-  const userIndex = users.findIndex((u) => u.id === currentUser.id);
+  const users = getAuthorizedUsers();
 
-  if (userIndex === -1) {
+  // Vérifier si l'ID existe déjà
+  if (users.some((user) => user.id === userData.id)) {
+    throw new Error("Cet identifiant est déjà utilisé");
+  }
+
+  // Ajouter le nouvel utilisateur
+  const newUser = {
+    ...userData,
+    isAdmin: userData.isAdmin || false, // Par défaut, les nouveaux utilisateurs ne sont pas admin
+  };
+
+  const updatedUsers = [...users, newUser];
+  localStorage.setItem("usersList", JSON.stringify(updatedUsers));
+
+  return newUser;
+};
+
+/**
+ * Met à jour un utilisateur existant
+ * @param {Object} userData - Données de l'utilisateur à mettre à jour
+ * @returns {Object} - L'utilisateur mis à jour
+ */
+export const updateUser = (userData) => {
+  // Vérifier si l'utilisateur actuel est administrateur
+  if (!isCurrentUserAdmin()) {
+    throw new Error("Opération non autorisée: droits d'administrateur requis");
+  }
+
+  const users = getAuthorizedUsers();
+  const index = users.findIndex((user) => user.id === userData.id);
+
+  if (index === -1) {
     throw new Error("Utilisateur non trouvé");
   }
 
-  // Mettre à jour les propriétés spécifiées
-  const updatedUser = {
-    ...users[userIndex],
-    ...updates,
+  // Mettre à jour l'utilisateur
+  users[index] = {
+    ...users[index],
+    ...userData,
   };
 
-  // Mettre à jour l'utilisateur dans la liste
-  users[userIndex] = updatedUser;
-  saveUsers(users);
+  localStorage.setItem("usersList", JSON.stringify(users));
 
-  // Mettre à jour l'utilisateur actuel
-  localStorage.setItem("currentUser", JSON.stringify(updatedUser));
-  currentUser = updatedUser;
+  // Si l'utilisateur mis à jour est l'utilisateur actuel, mettre à jour également l'utilisateur actuel
+  if (currentUser && currentUser.id === userData.id) {
+    currentUser = users[index];
+    localStorage.setItem("currentUser", JSON.stringify(currentUser));
+  }
 
-  return updatedUser;
+  return users[index];
+};
+
+/**
+ * Supprime un utilisateur
+ * @param {string} userId - ID de l'utilisateur à supprimer
+ * @returns {boolean} - True si la suppression a réussi
+ */
+export const deleteUser = (userId) => {
+  // Vérifier si l'utilisateur actuel est administrateur
+  if (!isCurrentUserAdmin()) {
+    throw new Error("Opération non autorisée: droits d'administrateur requis");
+  }
+
+  // Ne pas permettre la suppression de son propre compte
+  if (currentUser && currentUser.id === userId) {
+    throw new Error("Vous ne pouvez pas supprimer votre propre compte");
+  }
+
+  const users = getAuthorizedUsers();
+  const updatedUsers = users.filter((user) => user.id !== userId);
+
+  if (updatedUsers.length === users.length) {
+    // Aucun utilisateur n'a été supprimé
+    return false;
+  }
+
+  localStorage.setItem("usersList", JSON.stringify(updatedUsers));
+  return true;
 };

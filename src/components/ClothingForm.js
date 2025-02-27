@@ -16,6 +16,7 @@ function ClothingForm({ onSubmit, clothing, onCancel }) {
     season: "",
     imageUrl: "",
     imageSource: "upload", // 'upload' ou 'url'
+    price: "", // Nouveau champ pour le prix
   });
 
   const [imagePreview, setImagePreview] = useState("");
@@ -30,7 +31,8 @@ function ClothingForm({ onSubmit, clothing, onCancel }) {
         ...clothing,
         type: clothing.type || "",
         subType: clothing.subType || "",
-        imageSource: clothing.imageUrl ? "url" : "upload", // Par défaut, supposer que les images existantes viennent d'URL
+        price: clothing.price || "", // Initialiser le prix s'il existe
+        imageSource: clothing.imageUrl ? "url" : "upload",
       });
       setImagePreview(clothing.imageUrl || "");
 
@@ -48,6 +50,12 @@ function ClothingForm({ onSubmit, clothing, onCancel }) {
     if (name === "type") {
       setForm({ ...form, [name]: value, subType: "" });
       setSubCategories(getSubCategories(value));
+    } else if (name === "price") {
+      // Validation pour ne permettre que des nombres et une virgule/point
+      const isValidPrice = /^[0-9]*[.,]?[0-9]*$/.test(value);
+      if (isValidPrice || value === "") {
+        setForm({ ...form, [name]: value });
+      }
     } else {
       setForm({ ...form, [name]: value });
     }
@@ -104,8 +112,14 @@ function ClothingForm({ onSubmit, clothing, onCancel }) {
       return;
     }
 
+    // Formater le prix (remplacer la virgule par un point et convertir en nombre)
+    const formattedData = { ...form };
+    if (form.price) {
+      formattedData.price = parseFloat(form.price.replace(",", "."));
+    }
+
     // Soumission du formulaire
-    onSubmit(form);
+    onSubmit(formattedData);
   };
 
   // Composant d'aide pour les URL d'images
@@ -242,6 +256,21 @@ function ClothingForm({ onSubmit, clothing, onCancel }) {
             <option value="automne">Automne</option>
             <option value="hiver">Hiver</option>
           </select>
+        </div>
+
+        <div className="form-group">
+          <label htmlFor="price">Prix (€)</label>
+          <input
+            type="text"
+            id="price"
+            name="price"
+            value={form.price}
+            onChange={handleChange}
+            placeholder="Ex: 29.99"
+          />
+          <small className="input-help">
+            Utilisez un point ou une virgule pour les centimes
+          </small>
         </div>
 
         <div className="form-group">

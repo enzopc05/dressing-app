@@ -81,3 +81,9 @@
   color: white;
   width: 100%;
 }
+
+/* Ajouter à la fin du fichier src/styles/ClothingItem.css */
+.clothing-price {
+  font-weight: bold;
+  color: #e74c3c;
+}

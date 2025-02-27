@@ -13,6 +13,12 @@ function ClothingItem({
   // Récupérer le libellé complet de la catégorie
   const categoryLabel = getFullCategoryLabel(item.type, item.subType);
 
+  // Formater le prix pour l'affichage
+  const formatPrice = (price) => {
+    if (price === undefined || price === null || price === "") return "";
+    return `${price.toFixed(2)} €`;
+  };
+
   return (
     <div className={`clothing-item ${isSelected ? "selected" : ""}`}>
       <div className="clothing-image">
@@ -29,6 +35,9 @@ function ClothingItem({
         <p className="clothing-color">Couleur: {item.color}</p>
         {item.season && (
           <p className="clothing-season">Saison: {item.season}</p>
+        )}
+        {item.price && (
+          <p className="clothing-price">Prix: {formatPrice(item.price)}</p>
         )}
       </div>
 
