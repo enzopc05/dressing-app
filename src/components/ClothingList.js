@@ -1,58 +1,101 @@
-import React, { useState } from 'react';
-import ClothingItem from './ClothingItem';
-import '../styles/ClothingList.css';
+import React, { useState } from "react";
+import ClothingItem from "./ClothingItem";
+import "../styles/ClothingList.css";
+import {
+  getMainCategories,
+  getSubCategories,
+} from "../utils/clothingCategories";
 
 function ClothingList({ clothes, onDelete, onEdit }) {
   const [filter, setFilter] = useState({
-    type: '',
-    color: '',
-    season: ''
+    type: "",
+    subType: "",
+    color: "",
+    season: "",
   });
 
-  // Obtenir les valeurs uniques pour les filtres
-  const types = [...new Set(clothes.map(item => item.type))];
-  const colors = [...new Set(clothes.map(item => item.color))];
-  const seasons = [...new Set(clothes.filter(item => item.season).map(item => item.season))];
+  // Ajouter un state pour les sous-catégories disponibles dans le filtre
+  const [filterSubCategories, setFilterSubCategories] = useState({});
 
+  // Obtenir les valeurs uniques pour les filtres
+  const colors = [...new Set(clothes.map((item) => item.color))];
+  const seasons = [
+    ...new Set(
+      clothes.filter((item) => item.season).map((item) => item.season)
+    ),
+  ];
+
+  // Gérer le changement de filtre
   const handleFilterChange = (e) => {
     const { name, value } = e.target;
-    setFilter({ ...filter, [name]: value });
+
+    if (name === "type") {
+      // Réinitialiser la sous-catégorie quand la catégorie principale change
+      setFilter({ ...filter, [name]: value, subType: "" });
+      // Mettre à jour les sous-catégories disponibles
+      setFilterSubCategories(value ? getSubCategories(value) : {});
+    } else {
+      setFilter({ ...filter, [name]: value });
+    }
   };
 
   // Filtrer les vêtements
-  const filteredClothes = clothes.filter(item => {
+  const filteredClothes = clothes.filter((item) => {
     return (
-      (filter.type === '' || item.type === filter.type) &&
-      (filter.color === '' || item.color === filter.color) &&
-      (filter.season === '' || item.season === filter.season)
+      (filter.type === "" || item.type === filter.type) &&
+      (filter.subType === "" || item.subType === filter.subType) &&
+      (filter.color === "" || item.color === filter.color) &&
+      (filter.season === "" || item.season === filter.season)
     );
   });
 
   // Réinitialiser les filtres
   const resetFilters = () => {
-    setFilter({ type: '', color: '', season: '' });
+    setFilter({ type: "", subType: "", color: "", season: "" });
+    setFilterSubCategories({});
   };
 
   return (
     <div className="clothing-list-container">
       <div className="filters">
         <h3>Filtres</h3>
-        
+
         <div className="filter-group">
-          <label htmlFor="type-filter">Type</label>
+          <label htmlFor="type-filter">Catégorie</label>
           <select
             id="type-filter"
             name="type"
             value={filter.type}
             onChange={handleFilterChange}
           >
-            <option value="">Tous</option>
-            {types.map(type => (
-              <option key={type} value={type}>{type}</option>
+            <option value="">Toutes</option>
+            {Object.entries(getMainCategories()).map(([key, label]) => (
+              <option key={key} value={key}>
+                {label}
+              </option>
             ))}
           </select>
         </div>
-        
+
+        {filter.type && Object.keys(filterSubCategories).length > 0 && (
+          <div className="filter-group">
+            <label htmlFor="subType-filter">Sous-catégorie</label>
+            <select
+              id="subType-filter"
+              name="subType"
+              value={filter.subType}
+              onChange={handleFilterChange}
+            >
+              <option value="">Toutes</option>
+              {Object.entries(filterSubCategories).map(([key, label]) => (
+                <option key={key} value={key}>
+                  {label}
+                </option>
+              ))}
+            </select>
+          </div>
+        )}
+
         <div className="filter-group">
           <label htmlFor="color-filter">Couleur</label>
           <select
@@ -62,12 +105,14 @@ function ClothingList({ clothes, onDelete, onEdit }) {
             onChange={handleFilterChange}
           >
             <option value="">Toutes</option>
-            {colors.map(color => (
-              <option key={color} value={color}>{color}</option>
+            {colors.map((color) => (
+              <option key={color} value={color}>
+                {color}
+              </option>
             ))}
           </select>
         </div>
-        
+
         <div className="filter-group">
           <label htmlFor="season-filter">Saison</label>
           <select
@@ -77,20 +122,22 @@ function ClothingList({ clothes, onDelete, onEdit }) {
             onChange={handleFilterChange}
           >
             <option value="">Toutes</option>
-            {seasons.map(season => (
-              <option key={season} value={season}>{season}</option>
+            {seasons.map((season) => (
+              <option key={season} value={season}>
+                {season}
+              </option>
             ))}
           </select>
         </div>
-        
+
         <button className="reset-filter-btn" onClick={resetFilters}>
           Réinitialiser les filtres
         </button>
       </div>
-      
+
       <div className="clothing-grid">
         {filteredClothes.length > 0 ? (
-          filteredClothes.map(item => (
+          filteredClothes.map((item) => (
             <ClothingItem
               key={item.id}
               item={item}
@@ -100,7 +147,9 @@ function ClothingList({ clothes, onDelete, onEdit }) {
             />
           ))
         ) : (
-          <p className="no-items">Aucun vêtement trouvé. Ajoutez-en ou modifiez vos filtres.</p>
+          <p className="no-items">
+            Aucun vêtement trouvé. Ajoutez-en ou modifiez vos filtres.
+          </p>
         )}
       </div>
     </div>

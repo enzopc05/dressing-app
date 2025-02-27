@@ -4,6 +4,7 @@ import Header from "./Header";
 import ClothingList from "./ClothingList";
 import ClothingForm from "./ClothingForm";
 import OutfitCreator from "./OutfitCreator";
+import ColorAssistant from "./ColorAssistant";
 import UserSelection from "./UserSelection";
 import Footer from "./Footer";
 import {
@@ -17,15 +18,13 @@ import { isLoggedIn, getCurrentUserId } from "../utils/simpleAuthService";
 
 function App() {
   const [clothes, setClothes] = useState([]);
-  const [view, setView] = useState("list"); // 'list', 'add', 'outfit'
+  const [view, setView] = useState("list"); // 'list', 'add', 'outfit', 'color'
   const [selectedClothes, setSelectedClothes] = useState(null);
   const [loggedIn, setLoggedIn] = useState(false);
-  const [loading, setLoading] = useState(true);
 
   // Vérifier si un utilisateur est connecté
   useEffect(() => {
     setLoggedIn(isLoggedIn());
-    setLoading(false);
   }, []);
 
   // Charger les vêtements depuis le service de données au démarrage
@@ -84,26 +83,15 @@ function App() {
     }
   };
 
-  if (loading) {
-    return (
-      <div className="App">
-        <div className="loading-container">
-          <div className="loading-spinner"></div>
-          <p>Chargement...</p>
-        </div>
-      </div>
-    );
-  }
-
   return (
     <div className="App">
-      <Header setView={setView} currentView={view} />
+      <Header setView={setView} />
 
       <main className="app-content">
         <UserSelection />
 
         {!loggedIn ? (
-          <div className="login-message card animate-fade-in">
+          <div className="login-message">
             <h2>Bienvenue dans votre Dressing Virtuel</h2>
             <p>
               Veuillez sélectionner un utilisateur pour accéder à votre
@@ -111,7 +99,7 @@ function App() {
             </p>
           </div>
         ) : (
-          <div className="animate-fade-in">
+          <>
             {view === "list" && (
               <ClothingList
                 clothes={clothes}
@@ -134,7 +122,9 @@ function App() {
             )}
 
             {view === "outfit" && <OutfitCreator clothes={clothes} />}
-          </div>
+
+            {view === "color" && <ColorAssistant />}
+          </>
         )}
       </main>
 

@@ -1,12 +1,17 @@
 import React, { useState, useEffect } from "react";
 import "../styles/ClothingForm.css";
 import { getShoppingWebsiteTips } from "../utils/urlHelper";
+import {
+  getMainCategories,
+  getSubCategories,
+} from "../utils/clothingCategories";
 
 function ClothingForm({ onSubmit, clothing, onCancel }) {
   // Initialiser l'état avec les valeurs par défaut ou les valeurs du vêtement à modifier
   const [form, setForm] = useState({
     name: "",
     type: "",
+    subType: "",
     color: "",
     season: "",
     imageUrl: "",
@@ -16,21 +21,36 @@ function ClothingForm({ onSubmit, clothing, onCancel }) {
   const [imagePreview, setImagePreview] = useState("");
   const [isUploading, setIsUploading] = useState(false);
   const [imageError, setImageError] = useState("");
+  const [subCategories, setSubCategories] = useState({});
 
   // Si un vêtement est fourni pour modification, remplir le formulaire
   useEffect(() => {
     if (clothing) {
       setForm({
         ...clothing,
+        type: clothing.type || "",
+        subType: clothing.subType || "",
         imageSource: clothing.imageUrl ? "url" : "upload", // Par défaut, supposer que les images existantes viennent d'URL
       });
       setImagePreview(clothing.imageUrl || "");
+
+      // Si un type est défini, chargez les sous-catégories
+      if (clothing.type) {
+        setSubCategories(getSubCategories(clothing.type));
+      }
     }
   }, [clothing]);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
-    setForm({ ...form, [name]: value });
+
+    // Si le champ modifié est le type, réinitialiser la sous-catégorie
+    if (name === "type") {
+      setForm({ ...form, [name]: value, subType: "" });
+      setSubCategories(getSubCategories(value));
+    } else {
+      setForm({ ...form, [name]: value });
+    }
   };
 
   const handleImageChange = (e) => {
@@ -160,7 +180,7 @@ function ClothingForm({ onSubmit, clothing, onCancel }) {
         </div>
 
         <div className="form-group">
-          <label htmlFor="type">Type*</label>
+          <label htmlFor="type">Catégorie*</label>
           <select
             id="type"
             name="type"
@@ -168,16 +188,33 @@ function ClothingForm({ onSubmit, clothing, onCancel }) {
             onChange={handleChange}
             required
           >
-            <option value="">Sélectionnez un type</option>
-            <option value="haut">Haut</option>
-            <option value="bas">Bas</option>
-            <option value="chaussures">Chaussures</option>
-            <option value="accessoire">Accessoire</option>
-            <option value="veste">Veste</option>
-            <option value="robe">Robe</option>
-            <option value="autre">Autre</option>
+            <option value="">Sélectionnez une catégorie</option>
+            {Object.entries(getMainCategories()).map(([key, label]) => (
+              <option key={key} value={key}>
+                {label}
+              </option>
+            ))}
           </select>
         </div>
+
+        {form.type && Object.keys(subCategories).length > 0 && (
+          <div className="form-group">
+            <label htmlFor="subType">Sous-catégorie</label>
+            <select
+              id="subType"
+              name="subType"
+              value={form.subType}
+              onChange={handleChange}
+            >
+              <option value="">Sélectionnez une sous-catégorie</option>
+              {Object.entries(subCategories).map(([key, label]) => (
+                <option key={key} value={key}>
+                  {label}
+                </option>
+              ))}
+            </select>
+          </div>
+        )}
 
         <div className="form-group">
           <label htmlFor="color">Couleur*</label>

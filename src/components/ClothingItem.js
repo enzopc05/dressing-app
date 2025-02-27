@@ -1,5 +1,6 @@
 import React from "react";
 import "../styles/ClothingItem.css";
+import { getFullCategoryLabel } from "../utils/clothingCategories";
 
 function ClothingItem({
   item,
@@ -9,6 +10,9 @@ function ClothingItem({
   onSelect,
   isSelected,
 }) {
+  // Récupérer le libellé complet de la catégorie
+  const categoryLabel = getFullCategoryLabel(item.type, item.subType);
+
   return (
     <div className={`clothing-item ${isSelected ? "selected" : ""}`}>
       <div className="clothing-image">
@@ -21,7 +25,7 @@ function ClothingItem({
 
       <div className="clothing-details">
         <h3>{item.name}</h3>
-        <p className="clothing-type">{item.type}</p>
+        <p className="clothing-type">{categoryLabel || item.type}</p>
         <p className="clothing-color">Couleur: {item.color}</p>
         {item.season && (
           <p className="clothing-season">Saison: {item.season}</p>
