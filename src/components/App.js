@@ -20,10 +20,12 @@ function App() {
   const [view, setView] = useState("list"); // 'list', 'add', 'outfit'
   const [selectedClothes, setSelectedClothes] = useState(null);
   const [loggedIn, setLoggedIn] = useState(false);
+  const [loading, setLoading] = useState(true);
 
   // Vérifier si un utilisateur est connecté
   useEffect(() => {
     setLoggedIn(isLoggedIn());
+    setLoading(false);
   }, []);
 
   // Charger les vêtements depuis le service de données au démarrage
@@ -82,15 +84,26 @@ function App() {
     }
   };
 
+  if (loading) {
+    return (
+      <div className="App">
+        <div className="loading-container">
+          <div className="loading-spinner"></div>
+          <p>Chargement...</p>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="App">
-      <Header setView={setView} />
+      <Header setView={setView} currentView={view} />
 
       <main className="app-content">
         <UserSelection />
 
         {!loggedIn ? (
-          <div className="login-message">
+          <div className="login-message card animate-fade-in">
             <h2>Bienvenue dans votre Dressing Virtuel</h2>
             <p>
               Veuillez sélectionner un utilisateur pour accéder à votre
@@ -98,7 +111,7 @@ function App() {
             </p>
           </div>
         ) : (
-          <>
+          <div className="animate-fade-in">
             {view === "list" && (
               <ClothingList
                 clothes={clothes}
@@ -121,7 +134,7 @@ function App() {
             )}
 
             {view === "outfit" && <OutfitCreator clothes={clothes} />}
-          </>
+          </div>
         )}
       </main>
 

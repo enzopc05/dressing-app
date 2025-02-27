@@ -1,15 +1,17 @@
-import React from "react";
+import React, { useState } from "react";
 import {
   getAuthorizedUsers,
   loginUser,
   logoutUser,
   getCurrentUser,
 } from "../utils/simpleAuthService";
+import UserProfile from "./UserProfile";
 import "../styles/UserSelection.css";
 
 function UserSelection() {
   const users = getAuthorizedUsers();
   const currentUser = getCurrentUser();
+  const [showProfileModal, setShowProfileModal] = useState(false);
 
   const handleUserSelection = (userId) => {
     loginUser(userId);
@@ -23,20 +25,40 @@ function UserSelection() {
     window.location.reload();
   };
 
+  const openProfileModal = () => {
+    setShowProfileModal(true);
+  };
+
+  const closeProfileModal = () => {
+    setShowProfileModal(false);
+  };
+
   return (
     <div className="user-selection">
       {currentUser ? (
         <div className="current-user">
           <div
             className="user-avatar"
-            style={{ backgroundColor: currentUser.color }}
+            style={{
+              backgroundColor: currentUser.color,
+              backgroundImage: currentUser.avatar
+                ? `url(${currentUser.avatar})`
+                : "none",
+            }}
           >
-            {currentUser.name.charAt(0)}
+            {!currentUser.avatar && currentUser.name.charAt(0)}
           </div>
-          <span>{currentUser.name}</span>
-          <button onClick={handleLogout} className="logout-button">
-            Déconnexion
-          </button>
+          <span className="user-name">{currentUser.name}</span>
+          <div className="user-actions">
+            <button onClick={openProfileModal} className="edit-profile-button">
+              Modifier
+            </button>
+            <button onClick={handleLogout} className="logout-button">
+              Déconnexion
+            </button>
+          </div>
+
+          {showProfileModal && <UserProfile onClose={closeProfileModal} />}
         </div>
       ) : (
         <div className="user-list">
@@ -50,11 +72,16 @@ function UserSelection() {
               >
                 <div
                   className="user-avatar"
-                  style={{ backgroundColor: user.color }}
+                  style={{
+                    backgroundColor: user.color,
+                    backgroundImage: user.avatar
+                      ? `url(${user.avatar})`
+                      : "none",
+                  }}
                 >
-                  {user.name.charAt(0)}
+                  {!user.avatar && user.name.charAt(0)}
                 </div>
-                <span>{user.name}</span>
+                <span className="user-name">{user.name}</span>
               </div>
             ))}
           </div>

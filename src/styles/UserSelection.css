@@ -1,27 +1,29 @@
 /* src/styles/UserSelection.css */
 .user-selection {
-  margin-bottom: 1rem;
+  margin-bottom: 1.5rem;
 }
 
 .user-list {
   background-color: white;
-  border-radius: 8px;
-  padding: 1rem;
-  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
-  margin-bottom: 1.5rem;
+  border-radius: 12px;
+  padding: 1.5rem;
+  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.05);
+  margin-bottom: 2rem;
 }
 
 .user-list h3 {
   margin-top: 0;
-  margin-bottom: 1rem;
+  margin-bottom: 1.5rem;
   color: #2c3e50;
   text-align: center;
+  font-weight: 500;
+  font-size: 1.3rem;
 }
 
 .users {
   display: flex;
   flex-wrap: wrap;
-  gap: 1rem;
+  gap: 1.5rem;
   justify-content: center;
 }
 
@@ -30,58 +32,135 @@
   flex-direction: column;
   align-items: center;
   cursor: pointer;
-  padding: 0.5rem;
-  border-radius: 8px;
-  transition: background-color 0.2s;
-  width: 80px;
+  padding: 1rem;
+  border-radius: 12px;
+  transition: all 0.3s;
+  width: 100px;
+  box-shadow: 0 3px 10px rgba(0, 0, 0, 0.05);
 }
 
 .user-item:hover {
-  background-color: #f5f7fa;
+  transform: translateY(-5px);
+  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
 }
 
 .user-avatar {
-  width: 40px;
-  height: 40px;
+  width: 60px;
+  height: 60px;
   border-radius: 50%;
   display: flex;
   align-items: center;
   justify-content: center;
   color: white;
   font-weight: bold;
-  margin-bottom: 0.5rem;
+  font-size: 1.5rem;
+  margin-bottom: 0.75rem;
+  background-size: cover;
+  background-position: center;
+  box-shadow: 0 3px 8px rgba(0, 0, 0, 0.1);
+}
+
+.user-name {
+  font-weight: 500;
+  color: #2c3e50;
+  text-align: center;
 }
 
 .current-user {
   display: flex;
   align-items: center;
   background-color: white;
-  border-radius: 20px;
-  padding: 0.5rem 1rem;
-  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
-  margin-bottom: 1rem;
+  border-radius: 30px;
+  padding: 0.75rem 1.5rem;
+  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.05);
+  margin-bottom: 1.5rem;
 }
 
 .current-user .user-avatar {
-  width: 30px;
-  height: 30px;
-  margin-right: 0.5rem;
+  width: 40px;
+  height: 40px;
+  margin-right: 1rem;
   margin-bottom: 0;
+  font-size: 1.2rem;
 }
 
-.current-user span {
+.current-user .user-name {
   flex-grow: 1;
+  font-size: 1.1rem;
+}
+
+.user-actions {
+  display: flex;
+  gap: 0.75rem;
+}
+
+.edit-profile-button {
+  background-color: #3498db;
+  color: white;
+  border: none;
+  padding: 0.5rem 1rem;
+  border-radius: 20px;
+  cursor: pointer;
+  font-size: 0.9rem;
+  transition: all 0.2s;
+}
+
+.edit-profile-button:hover {
+  background-color: #2980b9;
 }
 
 .logout-button {
   background-color: transparent;
-  border: none;
+  border: 1px solid #e74c3c;
   color: #e74c3c;
+  padding: 0.5rem 1rem;
+  border-radius: 20px;
   cursor: pointer;
   font-size: 0.9rem;
-  padding: 0.25rem 0.5rem;
+  transition: all 0.2s;
 }
 
 .logout-button:hover {
-  text-decoration: underline;
+  background-color: #e74c3c;
+  color: white;
+}
+
+.login-message {
+  text-align: center;
+  padding: 3rem 1rem;
+  background-color: white;
+  border-radius: 12px;
+  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.05);
+}
+
+.login-message h2 {
+  margin-top: 0;
+  color: #2c3e50;
+  font-weight: 500;
+}
+
+.login-message p {
+  color: #7f8c8d;
+  margin-bottom: 0;
+}
+
+@media (max-width: 768px) {
+  .current-user {
+    flex-direction: column;
+    padding: 1rem;
+  }
+
+  .current-user .user-avatar {
+    margin-right: 0;
+    margin-bottom: 0.75rem;
+  }
+
+  .current-user .user-name {
+    margin-bottom: 0.75rem;
+  }
+
+  .user-actions {
+    width: 100%;
+    justify-content: center;
+  }
 }
