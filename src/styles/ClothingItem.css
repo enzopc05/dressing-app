@@ -1,0 +1,83 @@
+/* src/styles/ClothingItem.css */
+.clothing-item {
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  overflow: hidden;
+  background-color: white;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  transition: transform 0.3s, box-shadow 0.3s;
+  margin-bottom: 20px;
+}
+
+.clothing-item:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+}
+
+.clothing-item.selected {
+  border: 2px solid #3498db;
+}
+
+.clothing-image {
+  height: 200px;
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background-color: #f9f9f9;
+}
+
+.clothing-image img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.no-image {
+  color: #999;
+  font-style: italic;
+}
+
+.clothing-details {
+  padding: 1rem;
+}
+
+.clothing-details h3 {
+  margin: 0 0 0.5rem 0;
+  font-size: 1.2rem;
+}
+
+.clothing-details p {
+  margin: 0.25rem 0;
+  color: #666;
+}
+
+.clothing-actions {
+  padding: 0 1rem 1rem;
+  display: flex;
+  justify-content: space-between;
+}
+
+.clothing-actions button {
+  padding: 0.5rem;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 0.9rem;
+}
+
+.edit-btn {
+  background-color: #f39c12;
+  color: white;
+}
+
+.delete-btn {
+  background-color: #e74c3c;
+  color: white;
+}
+
+.select-btn {
+  background-color: #3498db;
+  color: white;
+  width: 100%;
+}
