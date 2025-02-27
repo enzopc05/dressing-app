@@ -15,50 +15,54 @@ function ClothingForm({ onSubmit, clothing, onCancel }) {
     color: "",
     season: "",
     imageUrl: "",
+    price: "",
     imageSource: "upload", // 'upload' ou 'url'
-    price: "", // Nouveau champ pour le prix
   });
 
   const [imagePreview, setImagePreview] = useState("");
   const [isUploading, setIsUploading] = useState(false);
   const [imageError, setImageError] = useState("");
+
+  // Récupérer les catégories principales
+  const mainCategories = getMainCategories();
   const [subCategories, setSubCategories] = useState({});
 
   // Si un vêtement est fourni pour modification, remplir le formulaire
   useEffect(() => {
     if (clothing) {
-      setForm({
+      const updatedForm = {
         ...clothing,
-        type: clothing.type || "",
-        subType: clothing.subType || "",
-        price: clothing.price || "", // Initialiser le prix s'il existe
         imageSource: clothing.imageUrl ? "url" : "upload",
-      });
-      setImagePreview(clothing.imageUrl || "");
+      };
 
-      // Si un type est défini, chargez les sous-catégories
+      // Mise à jour des sous-catégories si un type est présent
       if (clothing.type) {
-        setSubCategories(getSubCategories(clothing.type));
+        const newSubCategories = getSubCategories(clothing.type);
+        setSubCategories(newSubCategories);
       }
+
+      setForm(updatedForm);
+      setImagePreview(clothing.imageUrl || "");
     }
   }, [clothing]);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
+    setForm({ ...form, [name]: value });
+  };
 
-    // Si le champ modifié est le type, réinitialiser la sous-catégorie
-    if (name === "type") {
-      setForm({ ...form, [name]: value, subType: "" });
-      setSubCategories(getSubCategories(value));
-    } else if (name === "price") {
-      // Validation pour ne permettre que des nombres et une virgule/point
-      const isValidPrice = /^[0-9]*[.,]?[0-9]*$/.test(value);
-      if (isValidPrice || value === "") {
-        setForm({ ...form, [name]: value });
-      }
-    } else {
-      setForm({ ...form, [name]: value });
-    }
+  // Gérer le changement de catégorie principale pour mettre à jour les sous-catégories
+  const handleTypeChange = (e) => {
+    const { name, value } = e.target;
+    const newSubCategories = getSubCategories(value);
+    setSubCategories(newSubCategories);
+
+    // Réinitialiser la sous-catégorie si la catégorie principale change
+    setForm((prevForm) => ({
+      ...prevForm,
+      [name]: value,
+      subType: "", // Réinitialiser la sous-catégorie
+    }));
   };
 
   const handleImageChange = (e) => {
@@ -112,14 +116,16 @@ function ClothingForm({ onSubmit, clothing, onCancel }) {
       return;
     }
 
-    // Formater le prix (remplacer la virgule par un point et convertir en nombre)
-    const formattedData = { ...form };
-    if (form.price) {
-      formattedData.price = parseFloat(form.price.replace(",", "."));
-    }
+    // Conversion sécurisée du prix
+    const formData = {
+      ...form,
+      price: form.price
+        ? parseFloat(form.price.replace(",", ".").replace(/[^\d.]/g, ""))
+        : null,
+    };
 
     // Soumission du formulaire
-    onSubmit(formattedData);
+    onSubmit(formData);
   };
 
   // Composant d'aide pour les URL d'images
@@ -194,16 +200,16 @@ function ClothingForm({ onSubmit, clothing, onCancel }) {
         </div>
 
         <div className="form-group">
-          <label htmlFor="type">Catégorie*</label>
+          <label htmlFor="type">Type*</label>
           <select
             id="type"
             name="type"
             value={form.type}
-            onChange={handleChange}
+            onChange={handleTypeChange}
             required
           >
-            <option value="">Sélectionnez une catégorie</option>
-            {Object.entries(getMainCategories()).map(([key, label]) => (
+            <option value="">Sélectionnez un type</option>
+            {Object.entries(mainCategories).map(([key, label]) => (
               <option key={key} value={key}>
                 {label}
               </option>
@@ -213,14 +219,14 @@ function ClothingForm({ onSubmit, clothing, onCancel }) {
 
         {form.type && Object.keys(subCategories).length > 0 && (
           <div className="form-group">
-            <label htmlFor="subType">Sous-catégorie</label>
+            <label htmlFor="subType">Sous-type</label>
             <select
               id="subType"
               name="subType"
               value={form.subType}
               onChange={handleChange}
             >
-              <option value="">Sélectionnez une sous-catégorie</option>
+              <option value="">Sélectionnez un sous-type</option>
               {Object.entries(subCategories).map(([key, label]) => (
                 <option key={key} value={key}>
                   {label}
@@ -243,6 +249,18 @@ function ClothingForm({ onSubmit, clothing, onCancel }) {
         </div>
 
         <div className="form-group">
+          <label htmlFor="price">Prix</label>
+          <input
+            type="text"
+            id="price"
+            name="price"
+            value={form.price}
+            onChange={handleChange}
+            placeholder="0.00"
+          />
+        </div>
+
+        <div className="form-group">
           <label htmlFor="season">Saison</label>
           <select
             id="season"
@@ -256,21 +274,6 @@ function ClothingForm({ onSubmit, clothing, onCancel }) {
             <option value="automne">Automne</option>
             <option value="hiver">Hiver</option>
           </select>
-        </div>
-
-        <div className="form-group">
-          <label htmlFor="price">Prix (€)</label>
-          <input
-            type="text"
-            id="price"
-            name="price"
-            value={form.price}
-            onChange={handleChange}
-            placeholder="Ex: 29.99"
-          />
-          <small className="input-help">
-            Utilisez un point ou une virgule pour les centimes
-          </small>
         </div>
 
         <div className="form-group">

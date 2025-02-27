@@ -143,3 +143,12 @@
 .app-header .admin-button:hover {
   background-color: #9b59b6;
 }
+
+/* Ajouter à la fin du fichier src/styles/Header.css */
+.app-header .backup-button {
+  background-color: #f39c12;
+}
+
+.app-header .backup-button:hover {
+  background-color: #e67e22;
+}

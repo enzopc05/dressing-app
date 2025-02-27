@@ -9,6 +9,7 @@ import UserSelection from "./UserSelection";
 import UserAdmin from "./UserAdmin"; // Importer le nouveau composant
 import Footer from "./Footer";
 import PendingOrders from "./PendingOrders";
+import DataBackup from "./DataBackup";
 import {
   getClothes,
   saveClothes,
@@ -24,7 +25,7 @@ import {
 
 function App() {
   const [clothes, setClothes] = useState([]);
-  const [view, setView] = useState("list"); // 'list', 'add', 'outfit', 'color', 'admin', 'orders'
+  const [view, setView] = useState("list"); // 'list', 'add', 'outfit', 'color', 'admin', 'orders', 'backup'
   const [selectedClothes, setSelectedClothes] = useState(null);
   const [loggedIn, setLoggedIn] = useState(false);
   const [isAdmin, setIsAdmin] = useState(false); // Nouvel état pour vérifier si l'utilisateur est admin
@@ -132,6 +133,7 @@ function App() {
             {view === "color" && <ColorAssistant />}
             {view === "admin" && <UserAdmin />}{" "}
             {view === "orders" && <PendingOrders />}
+            {view === "backup" && <DataBackup />}
             {/* Nouveau rendu conditionnel pour l'admin */}
           </>
         )}

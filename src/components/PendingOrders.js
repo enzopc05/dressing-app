@@ -181,16 +181,23 @@ function PendingOrders() {
             <ul className="items-list">
               {order.items.map((item, index) => (
                 <li key={index} className="item-detail">
-                  <span className="item-name">{item.name}</span>
-                  <span className="item-type">
-                    {item.type} {item.subType ? `(${item.subType})` : ""}
-                  </span>
-                  <span className="item-color">{item.color}</span>
-                  {item.price !== undefined && (
-                    <span className="item-price">
-                      {formatPrice(item.price)}
-                    </span>
+                  {item.imageUrl && (
+                    <div className="item-image">
+                      <img src={item.imageUrl} alt={item.name} />
+                    </div>
                   )}
+                  <div className="item-info">
+                    <span className="item-name">{item.name}</span>
+                    <span className="item-type">
+                      {item.type} {item.subType ? `(${item.subType})` : ""}
+                    </span>
+                    <span className="item-color">{item.color}</span>
+                    {item.price !== undefined && (
+                      <span className="item-price">
+                        {formatPrice(item.price)}
+                      </span>
+                    )}
+                  </div>
                 </li>
               ))}
             </ul>

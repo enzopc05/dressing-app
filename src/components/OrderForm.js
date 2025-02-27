@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
   getMainCategories,
   getSubCategories,
@@ -21,10 +21,12 @@ function OrderForm({ onSubmit, onCancel }) {
     subType: "",
     color: "",
     price: "",
+    imageUrl: "", // Ajout du champ imageUrl
   });
 
   const [subCategories, setSubCategories] = useState({});
   const [errors, setErrors] = useState({});
+  const [imageError, setImageError] = useState(false);
 
   const handleOrderInfoChange = (e) => {
     const { name, value } = e.target;
@@ -46,6 +48,16 @@ function OrderForm({ onSubmit, onCancel }) {
     } else {
       setCurrentItem({ ...currentItem, [name]: value });
     }
+  };
+
+  // Réinitialiser l'erreur d'image quand l'URL change
+  useEffect(() => {
+    setImageError(false);
+  }, [currentItem.imageUrl]);
+
+  // Fonction pour gérer les erreurs d'image
+  const handleImageError = () => {
+    setImageError(true);
   };
 
   const validateItem = () => {
@@ -79,6 +91,7 @@ function OrderForm({ onSubmit, onCancel }) {
       subType: "",
       color: "",
       price: "",
+      imageUrl: "", // Réinitialiser aussi l'URL de l'image
     });
     setErrors({});
   };
@@ -197,6 +210,11 @@ function OrderForm({ onSubmit, onCancel }) {
               <ul className="items-list">
                 {items.map((item) => (
                   <li key={item.id} className="item-entry">
+                    {item.imageUrl && (
+                      <div className="item-thumb">
+                        <img src={item.imageUrl} alt={item.name} />
+                      </div>
+                    )}
                     <div className="item-info">
                       <span className="item-name">{item.name}</span>
                       <span className="item-details">
@@ -306,6 +324,34 @@ function OrderForm({ onSubmit, onCancel }) {
                   placeholder="Ex: 29.99"
                 />
               </div>
+            </div>
+
+            <div className="form-group">
+              <label htmlFor="item-imageUrl">URL de l'image (facultatif)</label>
+              <input
+                type="url"
+                id="item-imageUrl"
+                name="imageUrl"
+                value={currentItem.imageUrl}
+                onChange={handleItemChange}
+                placeholder="https://exemple.com/image.jpg"
+              />
+
+              {currentItem.imageUrl && !imageError && (
+                <div className="image-preview">
+                  <img
+                    src={currentItem.imageUrl}
+                    alt="Aperçu"
+                    onError={handleImageError}
+                  />
+                </div>
+              )}
+
+              {imageError && (
+                <div className="image-error">
+                  L'image ne peut pas être chargée. Veuillez vérifier l'URL.
+                </div>
+              )}
             </div>
 
             <button type="button" className="add-item-btn" onClick={addItem}>
