@@ -181,3 +181,68 @@ export const deleteUser = (userId) => {
   localStorage.setItem("usersList", JSON.stringify(updatedUsers));
   return true;
 };
+
+/**
+ * Importe une liste d'utilisateurs (admin uniquement)
+ * @param {Array} users - Liste des utilisateurs à importer
+ * @returns {boolean} - Succès de l'opération
+ */
+export const importUsers = (users) => {
+  // Vérifier si l'utilisateur actuel est administrateur
+  if (!isCurrentUserAdmin()) {
+    throw new Error("Opération non autorisée: droits d'administrateur requis");
+  }
+
+  try {
+    // Vérifier que la liste contient au moins un administrateur
+    const hasAdmin = users.some((user) => user.isAdmin === true);
+    if (!hasAdmin) {
+      throw new Error("La liste doit contenir au moins un administrateur");
+    }
+
+    // Enregistrer la liste des utilisateurs
+    localStorage.setItem("usersList", JSON.stringify(users));
+
+    // Vérifier que l'utilisateur actuel existe toujours dans la liste
+    const currentUserId = getCurrentUserId();
+    const userExists = users.some((user) => user.id === currentUserId);
+
+    if (!userExists) {
+      // Si l'utilisateur actuel n'existe plus, connecter avec le premier admin trouvé
+      const firstAdmin = users.find((user) => user.isAdmin === true);
+      if (firstAdmin) {
+        localStorage.setItem("currentUser", JSON.stringify(firstAdmin));
+        currentUser = firstAdmin;
+      } else {
+        throw new Error(
+          "L'utilisateur actuel a été supprimé et aucun administrateur n'a été trouvé"
+        );
+      }
+    }
+
+    // Mettre à jour la référence aux utilisateurs autorisés
+    AUTHORIZED_USERS = users;
+
+    return true;
+  } catch (error) {
+    console.error("Erreur lors de l'importation des utilisateurs:", error);
+
+    // Restaurer la liste précédente en cas d'erreur
+    localStorage.setItem("usersList", JSON.stringify(AUTHORIZED_USERS));
+
+    throw error;
+  }
+};
+
+/**
+ * Exporte la liste des utilisateurs (admin uniquement)
+ * @returns {Array} - Liste des utilisateurs
+ */
+export const exportUsers = () => {
+  // Vérifier si l'utilisateur actuel est administrateur
+  if (!isCurrentUserAdmin()) {
+    throw new Error("Opération non autorisée: droits d'administrateur requis");
+  }
+
+  return getAuthorizedUsers();
+};
